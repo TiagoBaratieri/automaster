@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Data
@@ -36,21 +37,18 @@ public class OrdemServico {
     private BigDecimal valorTotal;
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<ItemPeca> itensPeca = new ArrayList<>(); // SOLUÇÃO 2: Inicialize a lista!
+    private List<ItemPeca> itensPeca = new ArrayList<>();
 
-    // Faça o mesmo para serviços
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<ItemServico> itensServico = new ArrayList<>();
 
     public void calcularTotal() {
-        // 1. Soma o total das PEÇAS
-        // Se a lista for nula (o que não deve acontecer se inicializada), considera zero.
         BigDecimal totalPecas = BigDecimal.ZERO;
 
         if (itensPeca != null && !itensPeca.isEmpty()) {
             totalPecas = itensPeca.stream()
-                    .map(item -> item.getSubtotal()) // Chama o getSubtotal() de cada item
-                    .filter(valor -> valor != null)  // Segurança contra nulos
+                    .map(ItemPeca::getSubtotal) // Chama o getSubtotal() de cada item
+                    .filter(Objects::nonNull)  // Segurança contra nulos
                     .reduce(BigDecimal.ZERO, BigDecimal::add); // Soma acumulada
         }
 
@@ -59,8 +57,8 @@ public class OrdemServico {
 
         if (itensServico != null && !itensServico.isEmpty()) {
             totalServicos = itensServico.stream()
-                    .map(item -> item.getSubtotal())
-                    .filter(valor -> valor != null)
+                    .map(ItemServico::getSubtotal)
+                    .filter(Objects::nonNull)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 

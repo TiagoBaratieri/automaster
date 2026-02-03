@@ -1,6 +1,7 @@
 package com.baratieri.automaster.config;
 
 import com.baratieri.automaster.dto.AberturaOSDTO;
+import com.baratieri.automaster.dto.AdicionarPecaDTO;
 import com.baratieri.automaster.dto.AdicionarServicoDTO;
 import com.baratieri.automaster.dto.OrdemServicoResponseDTO;
 import com.baratieri.automaster.entities.*;
@@ -12,7 +13,6 @@ import com.baratieri.automaster.services.OsService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 import java.math.BigDecimal;
 
@@ -71,9 +71,10 @@ public class TestConfig {
             System.out.println("\n2. Mecânico adicionando Óleo...");
             Peca oleo = pecaRepo.findAll().get(0); // Pega a primeira peça do banco
 
-            // Chama o service (aqui estou assumindo que você manteve o método retornando a Entidade ou DTO)
-            // Se seu service retorna Entidade, convertemos aqui para ver o resultado:
-            OrdemServicoResponseDTO osComPeca = osService.adicionarPecaOs(osAberta.id(), oleo.getId(), 4);
+            AdicionarPecaDTO pedidoPeca = new AdicionarPecaDTO(oleo.getId(), 4);
+
+
+            OrdemServicoResponseDTO osComPeca = osService.adicionarPecaOs(osAberta.id(),pedidoPeca);
 
             // CENÁRIO C: Mecânico adiciona Serviço
             System.out.println("3. Mecânico lançando Mão de Obra...");
@@ -90,6 +91,8 @@ public class TestConfig {
             // 3. O GRAN FINALE (Visualizando o DTO de Resposta)
             // ----------------------------------------------------------------
             System.out.println("\n📊 RELATÓRIO FINAL (Como o JSON vai para o Front):");
+
+            System.out.println(osFinal);
         };
     }
 

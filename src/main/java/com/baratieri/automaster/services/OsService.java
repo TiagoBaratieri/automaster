@@ -1,6 +1,7 @@
 package com.baratieri.automaster.services;
 
 import com.baratieri.automaster.dto.AberturaOSDTO;
+import com.baratieri.automaster.dto.AdicionarPecaDTO;
 import com.baratieri.automaster.dto.AdicionarServicoDTO;
 import com.baratieri.automaster.dto.OrdemServicoResponseDTO;
 import com.baratieri.automaster.entities.*;
@@ -11,12 +12,14 @@ import com.baratieri.automaster.repositories.ServicoRepository;
 import com.baratieri.automaster.repositories.VeiculoRepository;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Service
@@ -27,6 +30,16 @@ public class OsService {
     private final VeiculoRepository veiculoRepository;
     private final PecaRepository pecaRepository;
     private final ServicoRepository servicoRepository;
+
+
+    @Transactional
+    public OrdemServicoResponseDTO buscarOrdemServicoPorId(Long id){
+        Optional<OrdemServico> ordemServico = osRepository.findById(id);
+        OrdemServico os = ordemServico.orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND,"Ordem de serviço não encontrada"));
+        return OrdemServicoResponseDTO.fromEntity(os);
+    }
+
 
     @Transactional
     public OrdemServicoResponseDTO abrirOS(AberturaOSDTO dto) {
@@ -48,17 +61,16 @@ public class OsService {
     @Transactional
     public OrdemServicoResponseDTO adicionarServico(Long osId, AdicionarServicoDTO dados) {
         OrdemServico os = buscarOsOuFalhar(osId);
+        validarStatusParaEdicao(os);
+
         Servico servico = servicoRepository.findById(dados.idServico())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado"));
-
-        validarStatusParaEdicao(os);
 
         ItemServico item = new ItemServico();
         item.setOrdemServico(os);
         item.setServico(servico);
         item.setQuantidade(dados.quantidade() != null ? dados.quantidade() : 1);
         item.setObservacao(dados.observacao());
-
 
         if (dados.valorCobrado() != null) {
             item.setValorCobrado(dados.valorCobrado());
@@ -68,48 +80,36 @@ public class OsService {
 
         os.getItensServico().add(item);
 
-        os.calcularTotal();
-        osRepository.save(os);
-
-        return OrdemServicoResponseDTO.fromEntity(os);
+        return recalcularESalvar(os);
     }
 
 
-    public OrdemServicoResponseDTO adicionarPecaOs(Long osId, Long pecaId, Integer quantidade) {
-        OrdemServico os = buscarOs(osId);
-        Peca peca = pecaRepository.findById(pecaId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Peça não encontrada"));
+    @Transactional
+    public OrdemServicoResponseDTO adicionarPecaOs(Long osId, AdicionarPecaDTO dto) {
+        OrdemServico os = buscarOsOuFalhar(osId);
+        validarStatusParaEdicao(os);
 
-        validarOSAberta(os); // Não pode mexer em OS fechada
+        Peca peca = pecaRepository.findById(dto.idPeca())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Peça não encontrada"));
 
-        if (peca.getQuantidadeEstoque() < quantidade) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estoque insuficiente. Disponível: " + peca.getQuantidadeEstoque());
+        if (peca.getQuantidadeEstoque() < dto.quantidade()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estoque insuficiente.");
         }
 
-        // 3. Execução (A Mágica)
         ItemPeca item = new ItemPeca();
         item.setOrdemServico(os);
         item.setPeca(peca);
-        item.setQuantidade(quantidade);
-
-        // O SNAPSHOT: Gravamos o preço de HOJE. Se a peça aumentar amanhã, essa OS não muda.
+        item.setQuantidade(dto.quantidade());
         item.setPrecoUnitario(peca.getPrecoVenda());
 
-        // 4. Efeitos Colaterais (Side Effects)
-        os.getItensPeca().add(item); // Adiciona na lista
+        os.getItensPeca().add(item);
 
-        // BAIXA DE ESTOQUE (Crucial estar dentro do @Transactional)
-        peca.setQuantidadeEstoque(peca.getQuantidadeEstoque() - quantidade);
-        pecaRepository.save(peca); // Atualiza o estoque da peça
+        peca.setQuantidadeEstoque(peca.getQuantidadeEstoque() - dto.quantidade());
+        pecaRepository.save(peca);
 
-        // 5. Recálculo e Salvamento
-        os.calcularTotal(); // Aquele método que criamos na Entidade
-
-        osRepository.save(os);
-        return OrdemServicoResponseDTO.fromEntity(os);
+        return recalcularESalvar(os);
     }
-
-    public void finalizarOS(Long id) {
+    public OrdemServicoResponseDTO finalizarOS(Long id) {
         OrdemServico os = buscarOs(id);
         if(os.getItensPeca().isEmpty() && os.getItensServico().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível finalizar uma OS vazia.");
@@ -117,6 +117,7 @@ public class OsService {
         os.setStatus(StatusOS.FINALIZADO);
         os.setDataFechamento(LocalDateTime.now());
         osRepository.save(os);
+        return OrdemServicoResponseDTO.fromEntity(os);
     }
 
     private OrdemServico buscarOs(Long osId) {
@@ -145,5 +146,11 @@ public class OsService {
                 ));
     }
 
+
+    private OrdemServicoResponseDTO recalcularESalvar(OrdemServico os) {
+        os.calcularTotal();
+        os = osRepository.save(os);
+        return OrdemServicoResponseDTO.fromEntity(os);
+    }
 
 }
