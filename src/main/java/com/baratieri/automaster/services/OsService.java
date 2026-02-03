@@ -1,9 +1,9 @@
 package com.baratieri.automaster.services;
 
-import com.baratieri.automaster.dto.AberturaOSDTO;
-import com.baratieri.automaster.dto.AdicionarPecaDTO;
-import com.baratieri.automaster.dto.AdicionarServicoDTO;
-import com.baratieri.automaster.dto.OrdemServicoResponseDTO;
+import com.baratieri.automaster.dto.request.AberturaOsRequestDTO;
+import com.baratieri.automaster.dto.request.AdicionarPecaRequestDTO;
+import com.baratieri.automaster.dto.request.AdicionarServicoRequestDTO;
+import com.baratieri.automaster.dto.response.OrdemServicoResponseDTO;
 import com.baratieri.automaster.entities.*;
 import com.baratieri.automaster.entities.enums.StatusOS;
 import com.baratieri.automaster.repositories.OrdemServicoRepository;
@@ -42,7 +42,7 @@ public class OsService {
 
 
     @Transactional
-    public OrdemServicoResponseDTO abrirOS(AberturaOSDTO dto) {
+    public OrdemServicoResponseDTO abrirOS(AberturaOsRequestDTO dto) {
         Veiculo veiculo = veiculoRepository.findByPlaca(dto.placaVeiculo())
                 .orElseThrow(() ->
                         new ResponseStatusException(HttpStatus.NOT_FOUND, "Veículo não encontrado. Cadastre antes."));
@@ -59,7 +59,7 @@ public class OsService {
     }
 
     @Transactional
-    public OrdemServicoResponseDTO adicionarServico(Long osId, AdicionarServicoDTO dados) {
+    public OrdemServicoResponseDTO adicionarServico(Long osId, AdicionarServicoRequestDTO dados) {
         OrdemServico os = buscarOsOuFalhar(osId);
         validarStatusParaEdicao(os);
 
@@ -85,7 +85,7 @@ public class OsService {
 
 
     @Transactional
-    public OrdemServicoResponseDTO adicionarPecaOs(Long osId, AdicionarPecaDTO dto) {
+    public OrdemServicoResponseDTO adicionarPecaOs(Long osId, AdicionarPecaRequestDTO dto) {
         OrdemServico os = buscarOsOuFalhar(osId);
         validarStatusParaEdicao(os);
 

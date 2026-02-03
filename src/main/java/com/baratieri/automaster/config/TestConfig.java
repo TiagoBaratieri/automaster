@@ -1,9 +1,9 @@
 package com.baratieri.automaster.config;
 
-import com.baratieri.automaster.dto.AberturaOSDTO;
-import com.baratieri.automaster.dto.AdicionarPecaDTO;
-import com.baratieri.automaster.dto.AdicionarServicoDTO;
-import com.baratieri.automaster.dto.OrdemServicoResponseDTO;
+import com.baratieri.automaster.dto.request.AberturaOsRequestDTO;
+import com.baratieri.automaster.dto.request.AdicionarPecaRequestDTO;
+import com.baratieri.automaster.dto.request.AdicionarServicoRequestDTO;
+import com.baratieri.automaster.dto.response.OrdemServicoResponseDTO;
 import com.baratieri.automaster.entities.*;
 import com.baratieri.automaster.repositories.ClienteRepository;
 import com.baratieri.automaster.repositories.PecaRepository;
@@ -59,7 +59,7 @@ public class TestConfig {
             // CENÁRIO A: Recepcionista abre a O.S.
             System.out.println("1. Recepcionista criando a O.S...");
 
-            AberturaOSDTO inputDTO = new AberturaOSDTO(placaTeste, "Barulho ao frear");
+            AberturaOsRequestDTO inputDTO = new AberturaOsRequestDTO(placaTeste, "Barulho ao frear");
 
             // O Service retorna o DTO de Resposta (Output)
             OrdemServicoResponseDTO osAberta = osService.abrirOS(inputDTO);
@@ -71,7 +71,7 @@ public class TestConfig {
             System.out.println("\n2. Mecânico adicionando Óleo...");
             Peca oleo = pecaRepo.findAll().get(0); // Pega a primeira peça do banco
 
-            AdicionarPecaDTO pedidoPeca = new AdicionarPecaDTO(oleo.getId(), 4);
+            AdicionarPecaRequestDTO pedidoPeca = new AdicionarPecaRequestDTO(oleo.getId(), 4);
 
 
             OrdemServicoResponseDTO osComPeca = osService.adicionarPecaOs(osAberta.id(),pedidoPeca);
@@ -80,7 +80,7 @@ public class TestConfig {
             System.out.println("3. Mecânico lançando Mão de Obra...");
             Servico maoDeObra = servicoRepo.findAll().get(0);
 
-            AdicionarServicoDTO dtoPedidoServico = new AdicionarServicoDTO(
+            AdicionarServicoRequestDTO dtoPedidoServico = new AdicionarServicoRequestDTO(
                     maoDeObra.getId(),
                     1,
                     null,

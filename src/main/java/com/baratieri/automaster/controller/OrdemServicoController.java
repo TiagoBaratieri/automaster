@@ -1,10 +1,11 @@
 package com.baratieri.automaster.controller;
 
-import com.baratieri.automaster.dto.AberturaOSDTO;
-import com.baratieri.automaster.dto.AdicionarPecaDTO;
-import com.baratieri.automaster.dto.AdicionarServicoDTO;
-import com.baratieri.automaster.dto.OrdemServicoResponseDTO;
+import com.baratieri.automaster.dto.request.AberturaOsRequestDTO;
+import com.baratieri.automaster.dto.request.AdicionarPecaRequestDTO;
+import com.baratieri.automaster.dto.request.AdicionarServicoRequestDTO;
+import com.baratieri.automaster.dto.response.OrdemServicoResponseDTO;
 import com.baratieri.automaster.services.OsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class OrdemServicoController {
     }
 
     @PostMapping
-    public ResponseEntity<OrdemServicoResponseDTO> abrirOs(@RequestBody AberturaOSDTO osdto){
+    public ResponseEntity<OrdemServicoResponseDTO> abrirOs(@Valid  @RequestBody AberturaOsRequestDTO osdto){
         OrdemServicoResponseDTO osAberta = osService.abrirOS(osdto);
         return ResponseEntity.status(HttpStatus.CREATED).body(osAberta);
     }
@@ -31,7 +32,7 @@ public class OrdemServicoController {
     @PostMapping("/{id}/pecas")
     public ResponseEntity<OrdemServicoResponseDTO> adicionarPecaOs(
             @PathVariable Long id,
-            @RequestBody AdicionarPecaDTO dto){
+            @RequestBody AdicionarPecaRequestDTO dto){
         return ResponseEntity.ok(osService.adicionarPecaOs(id, dto));
 
     }
@@ -40,7 +41,7 @@ public class OrdemServicoController {
     @PostMapping("/{id}/servicos")
     public ResponseEntity<OrdemServicoResponseDTO> adicionarServicoOs(
             @PathVariable Long id,
-            @RequestBody AdicionarServicoDTO dto){
+            @RequestBody AdicionarServicoRequestDTO dto){
         return ResponseEntity.ok(osService.adicionarServico(id, dto));
     }
 

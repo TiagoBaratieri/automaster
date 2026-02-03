@@ -1,6 +1,8 @@
 package com.baratieri.automaster.repositories;
 
 import com.baratieri.automaster.entities.Cliente;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +15,6 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     Optional<Cliente> findByCpfOuCnpj(String cpfOuCnpj);
 
     List<Cliente> findByNomeIgnoreCaseContaining(String nome);
+
+    boolean existsByCpfOuCnpj(@NotBlank(message = "O CPF/CNPJ é obrigatório") @Pattern(regexp = "\\d{11}|\\d{14}", message = "CPF/CNPJ inválido (apenas números)") String clienteResponseDTO);
 }

@@ -27,6 +27,11 @@ public class Cliente {
 
     private String telefone;
 
+    private String email;
+
+    @Embedded
+    private Endereco endereco;
+
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Veiculo> veiculos = new ArrayList<>();
 }

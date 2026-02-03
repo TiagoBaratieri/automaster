@@ -1,10 +1,12 @@
-package com.baratieri.automaster.dto;
+package com.baratieri.automaster.dto.response;
 
+import com.baratieri.automaster.entities.ItemPeca;
 import com.baratieri.automaster.entities.OrdemServico;
 import com.baratieri.automaster.entities.enums.StatusOS;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public record OrdemServicoResponseDTO(
@@ -41,6 +43,7 @@ public record OrdemServicoResponseDTO(
             BigDecimal valorCobrado,
             BigDecimal subtotal
     ) {}
+
 
     public static OrdemServicoResponseDTO fromEntity(OrdemServico os) {
         if (os == null) return null;
